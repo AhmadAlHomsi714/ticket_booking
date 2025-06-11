@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Réservation de billets - Utilisateur</title>
+<style>
+  :root {
+    --couleur-primaire: #004e92;
+    --couleur-secondaire: #000428;
+    --accent: #f64f59;
+    --background-gradient: linear-gradient(135deg, var(--couleur-primaire), var(--couleur-secondaire));
+    --police: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: var(--police);
+    background: var(--background-gradient);
+    color: white;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .conteneur {
+    max-width: 520px;
+    width: 100%;
+    background: rgba(0,0,0,0.75);
+    border-radius: 12px;
+    padding: 30px 40px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  h1, h2, h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  input[type="number"],
+  select {
+    width: 100%;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    transition: box-shadow 0.3s ease;
+  }
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="password"]:focus,
+  input[type="date"]:focus,
+  select:focus {
+    box-shadow: 0 0 8px var(--accent);
+  }
+  button {
+    background: var(--accent);
+    border: none;
+    padding: 12px 20px;
+    width: 100%;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+  }
+  button:hover:not(:disabled) {
+    background: #d9393f;
+  }
+  button:disabled {
+    background: grey;
+    cursor: not-allowed;
+  }
+  .message-succes {
+    background: #0f9d58;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  .message-erreur {
+    background: #f64f59;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  .cacher {
+    display: none;
+  }
+  .info {
+    font-size: 0.9rem;
+    color: #ccc;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .match-card {
+    background: rgba(255 255 255 / 0.1);
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .match-card:hover {
+    background: rgba(255 255 255 / 0.2);
+  }
+  .match-info {
+    flex-grow: 1;
+  }
+  .match-name {
+    font-weight: 700;
+    font-size: 1.2rem;
+  }
+  .match-date {
+    font-size: 0.9rem;
+    color: #eee;
+    margin-top: 6px;
+  }
+  .match-price, .match-location {
+    font-weight: 700;
+    font-size: 1rem;
+    white-space: nowrap;
+    margin-left: 15px;
+  }
+  #logout-button {
+    background: #f64f59;
+    margin-top: 15px;
+  }
+  footer {
+    margin-top: 15px;
+    text-align: center;
+  }
+  .lang-btn {
+    background: var(--couleur-primaire);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    margin: 0 4px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    transition: background-color 0.3s ease;
+  }
+  .lang-btn:hover {
+    background: var(--accent);
+  }
+  .lang-btn.active {
+    background: var(--accent);
+    cursor: default;
+  }
+</style>
+</head>
+<body>
+  <div class="conteneur">
+    <h1>Réservation de billets - Utilisateur</h1>
+
+    <!-- Connexion -->
+    <div id="section-connexion" class="cacher">
+      <h2>Connexion</h2>
+      <form id="form-connexion">
+        <label for="email-conn">Email</label>
+        <input type="email" id="email-conn" name="email-conn" required placeholder="votre.email@exemple.com" />
+        <label for="mdp-conn">Mot de passe</label>
+        <input type="password" id="mdp-conn" name="mdp-conn" required placeholder="Votre mot de passe" />
+        <button type="submit">Se connecter</button>
+      </form>
+      <p class="info">Pas encore inscrit ? <a href="#" id="lien-inscription" style="color:#f64f59; cursor:pointer;">Inscrivez-vous ici</a></p>
+      <p id="erreur-conn" class="message-erreur cacher"></p>
+    </div>
+
+    <!-- Inscription -->
+    <div id="section-inscription" class="cacher">
+      <h2>Inscription</h2>
+      <form id="form-inscription">
+        <label for="pseudo">Nom d'utilisateur</label>
+        <input type="text" id="pseudo" name="pseudo" required minlength="3" maxlength="30" placeholder="Votre nom d'utilisateur" />
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required placeholder="votre.email@exemple.com" />
+        <label for="mdp">Mot de passe</label>
+        <input type="password" id="mdp" name="mdp" required minlength="6" placeholder="Saisissez un mot de passe" />
+        <label for="dob">Date de naissance</label>
+        <input type="date" id="dob" name="dob" required max="" />
+        <button type="submit">S'inscrire</button>
+      </form>
+      <p class="info">Un code de vérification vous sera envoyé (simulé)</p>
+      <p><a href="#" id="lien-connexion" style="color:#f64f59; cursor:pointer;">Déjà un compte ? Connectez-vous</a></p>
+      <p id="erreur-inscrip" class="message-erreur cacher"></p>
+    </div>
+
+    <!-- Vérification -->
+    <div id="section-verification" class="cacher">
+      <h2>Vérification d'email</h2>
+      <p>Nous avons envoyé un code de vérification. Veuillez le saisir :</p>
+      <form id="form-verification">
+        <label for="code-verif">Code de vérification</label>
+        <input type="number" id="code-verif" name="code-verif" required placeholder="Entrez le code" />
+        <button type="submit">Vérifier</button>
+      </form>
+      <p id="erreur-verif" class="message-erreur cacher">Code incorrect, réessayez.</p>
+    </div>
+
+    <!-- Réservation -->
+    <div id="section-reservation" class="cacher">
+      <h2>Réserver un billet</h2>
+      <form id="form-reservation">
+        <label for="match">Choisissez un match</label>
+        <select id="match" name="match" required>
+          <option value="" disabled selected>-- Sélectionnez --</option>
+        </select>
+        <label for="nombre-billets">Nombre de billets</label>
+        <input type="number" id="nombre-billets" name="nombre-billets" min="1" max="10" value="1" required />
+        <p id="confirmation" class="message-succes cacher"></p>
+        <button type="submit">Réserver</button>
+        <button type="button" id="btn-deconnexion" style="margin-top: 10px; background: #f64f59;">Se déconnecter</button>
+      </form>
+    </div>
+
+    <!-- Paiement -->
+    <div id="section-paiement" class="cacher">
+      <h2>Paiement par carte de crédit</h2>
+      <form id="form-paiement">
+        <label for="card-number">Numéro de carte</label>
+        <input type="text" id="card-number" name="card-number" maxlength="19" placeholder="1234 5678 9012 3456" required />
+        <label for="expiry-date">Date d'expiration</label>
+        <input type="text" id="expiry-date" name="expiry-date" maxlength="5" placeholder="MM/AA" required />
+        <label for="cvv">CVV</label>
+        <input type="text" id="cvv" name="cvv" maxlength="4" placeholder="123" required />
+        <button type="submit">Payer</button>
+      </form>
+      <p id="paiement-confirmation" class="message-succes cacher"></p>
+    </div>
+  </div>
+
+<script>
+  // Initialisation
+  const dobInput = document.getElementById('dob');
+  const today = new Date();
+  const dobMaxYear = today.getFullYear() - 18;
+  const dobMaxMonth = String(today.getMonth() + 1).padStart(2, '0');
+  const dobMaxDay = String(today.getDate()).padStart(2, '0');
+  dobInput.max = `${dobMaxYear}-${dobMaxMonth}-${dobMaxDay}`;
+
+  // Sections
+  const sectionConn = document.getElementById('section-connexion');
+  const sectionInscrip = document.getElementById('section-inscription');
+  const sectionVerif = document.getElementById('section-verification');
+  const sectionResa = document.getElementById('section-reservation');
+  const sectionPaiement = document.getElementById('section-paiement');
+
+  // Formulaires
+  const formConn = document.getElementById('form-connexion');
+  const formInscrip = document.getElementById('form-inscription');
+  const formVerif = document.getElementById('form-verification');
+  const formResa = document.getElementById('form-reservation');
+  const formPaiement = document.getElementById('form-paiement');
+
+  // Autres éléments
+  const lienInscrip = document.getElementById('lien-inscription');
+  const lienConnexion = document.getElementById('lien-connexion');
+  const erreurConn = document.getElementById('erreur-conn');
+  const erreurInscrip = document.getElementById('erreur-inscrip');
+  const erreurVerif = document.getElementById('erreur-verif');
+  const confirmation = document.getElementById('confirmation');
+  const btnDeconnexion = document.getElementById('btn-deconnexion');
+  const selectMatch = document.getElementById('match');
+  const paiementConfirmation = document.getElementById('paiement-confirmation');
+
+  // Variables globales
+  let utilisateurTemp = null;
+  let codeVerif = '';
+  let utilisateurConnecte = null;
+  let reservationEffectuee = null;
+
+  // Gestion utilisateurs localStorage
+  function getUtilisateurs(){
+    const data = localStorage.getItem('utilisateurs');
+    return data ? JSON.parse(data) : [];
+  }
+  function sauvegarderUtilisateurs(utilisateurs){
+    localStorage.setItem('utilisateurs', JSON.stringify(utilisateurs));
+  }
+  function ajouterUtilisateur(utilisateur){
+    let utilisateurs = getUtilisateurs();
+    utilisateurs.push(utilisateur);
+    sauvegarderUtilisateurs(utilisateurs);
+  }
+  function chercherUtilisateur(email){
+    return getUtilisateurs().find(u => u.email === email);
+  }
+  function mettreAJourUtilisateur(utilisateur){
+    let utilisateurs = getUtilisateurs();
+    let index = utilisateurs.findIndex(u => u.email === utilisateur.email);
+    if(index >= 0){
+      utilisateurs[index] = utilisateur;
+      sauvegarderUtilisateurs(utilisateurs);
+    }
+  }
+
+  // Récupérer matchs depuis localStorage (ou données par défaut)
+  function getMatchs(){
+    const data = localStorage.getItem('matchs');
+    if(data) return JSON.parse(data);
+    // Valeurs par défaut si aucun match sauvegardé
+    return [
+      {name_fr: 'Match de Hockey', date: '2024-08-15', price: 50, location_fr: 'Studio de MTL'},
+      {name_fr: 'Match de Boxe', date: '2024-08-25', price: 70, location_fr: 'Studio de MTL'}
+    ];
+  }
+
+  // Afficher les matchs dans la liste déroulante
+  function afficherMatchs(){
+    const matchs = getMatchs();
+    selectMatch.innerHTML = '<option value="" disabled selected>-- Sélectionnez --</option>';
+    matchs.forEach((m, i) => {
+      const option = document.createElement('option');
+      option.value = i;
+      option.textContent = `${m.name_fr} (${m.date}) - ${m.price} $ CA - ${m.location_fr}`;
+      selectMatch.appendChild(option);
+    });
+  }
+
+  // Afficher section demandée
+  function afficherSection(section){
+    sectionConn.classList.add('cacher');
+    sectionInscrip.classList.add('cacher');
+    sectionVerif.classList.add('cacher');
+    sectionResa.classList.add('cacher');
+    sectionPaiement.classList.add('cacher');
+    erreurConn.classList.add('cacher');
+    erreurInscrip.classList.add('cacher');
+    erreurVerif.classList.add('cacher');
+    confirmation.classList.add('cacher');
+    paiementConfirmation.classList.add('cacher');
+    section.classList.remove('cacher');
+  }
+
+  // Initialisation affichage
+  window.onload = () => {
+    utilisateurConnecte = JSON.parse(localStorage.getItem('utilisateurConnecte')) || null;
+    if(utilisateurConnecte){
+      afficherSection(sectionResa);
+    } else {
+      afficherSection(sectionConn);
+    }
+    afficherMatchs();
+  };
+
+  // Gestion liens inscription et connexion
+  lienInscrip.onclick = e => {
+    e.preventDefault();
+    afficherSection(sectionInscrip);
+  };
+  lienConnexion.onclick = e => {
+    e.preventDefault();
+    afficherSection(sectionConn);
+  };
+
+  // Inscription
+  formInscrip.onsubmit = e => {
+    e.preventDefault();
+    const pseudo = formInscrip.pseudo.value.trim();
+    const email = formInscrip.email.value.trim().toLowerCase();
+    const mdp = formInscrip.mdp.value;
+    const dob = formInscrip.dob.value;
+
+    if(chercherUtilisateur(email)){
+      erreurInscrip.textContent = 'Cet email est déjà utilisé.';
+      erreurInscrip.classList.remove('cacher');
+      return;
+    }
+    utilisateurTemp = {pseudo, email, mdp, dob};
+    codeVerif = Math.floor(100000 + Math.random()*900000).toString();
+    alert(`Votre code de vérification est : ${codeVerif}`);
+    afficherSection(sectionVerif);
+    formVerif.reset();
+  };
+
+  // Vérification
+  formVerif.onsubmit = e => {
+    e.preventDefault();
+    const codeEntre = formVerif['code-verif'].value.trim();
+    if(codeEntre === codeVerif){
+      ajouterUtilisateur(utilisateurTemp);
+      utilisateurTemp = null;
+      codeVerif = '';
+      alert("Inscription réussie ! Connectez-vous.");
+      afficherSection(sectionConn);
+      formConn.reset();
+    }else{
+      erreurVerif.classList.remove('cacher');
+    }
+  };
+
+  // Connexion
+  formConn.onsubmit = e => {
+    e.preventDefault();
+    const email = formConn['email-conn'].value.trim().toLowerCase();
+    const mdp = formConn['mdp-conn'].value;
+
+    const user = chercherUtilisateur(email);
+    if(user && user.mdp === mdp){
+      utilisateurConnecte = user;
+      localStorage.setItem('utilisateurConnecte', JSON.stringify(user));
+      afficherSection(sectionResa);
+      confirmation.textContent = '';
+      formResa.reset();
+    } else {
+      erreurConn.textContent = "Email ou mot de passe incorrect.";
+      erreurConn.classList.remove('cacher');
+    }
+  };
+
+  // Déconnexion
+  btnDeconnexion.onclick = () => {
+    utilisateurConnecte = null;
+    localStorage.removeItem('utilisateurConnecte');
+    afficherSection(sectionConn);
+    formConn.reset();
+  };
+
+  // Réservation
+  formResa.onsubmit = e => {
+    e.preventDefault();
+    const matchIndex = formResa.match.value;
+    const nbBillets = formResa['nombre-billets'].value;
+
+    if(!matchIndex){
+      alert("Veuillez choisir un match.");
+      return;
+    }
+    if(nbBillets<1){
+      alert("Veuillez choisir un nombre de billets correct.");
+      return;
+    }
+
+    utilisateurConnecte.reservation = {
+      eventIndex: parseInt(matchIndex), quantity: nbBillets
+    };
+    // Mise à jour utilisateur stocké
+    let utilisateurs = getUtilisateurs();
+    const indexUser = utilisateurs.findIndex(u => u.email === utilisateurConnecte.email);
+    if(indexUser >= 0){
+      utilisateurs[indexUser] = utilisateurConnecte;
+      sauvegarderUtilisateurs(utilisateurs);
+    }
+    confirmation.textContent = `Merci ${utilisateurConnecte.pseudo}, vous avez réservé ${nbBillets} billet(s) pour le match sélectionné.`;
+    confirmation.classList.remove('cacher');
+    reservationEffectuee = true;
+    afficherSection(sectionPaiement);
+  };
+
+  // Paiement
+  formPaiement.onsubmit = e => {
+    e.preventDefault();
+    const cardNumber = formPaiement['card-number'].value.trim();
+    const expiryDate = formPaiement['expiry-date'].value.trim();
+    const cvv = formPaiement['cvv'].value.trim();
+
+    if(!cardNumber || !expiryDate || !cvv){
+      alert("Veuillez remplir tous les champs de paiement.");
+      return;
+    }
+
+    // Simuler un traitement de paiement
+    alert("Paiement effectué avec succès !");
+    paiementConfirmation.textContent = "Merci pour votre paiement. Votre réservation est confirmée.";
+    paiementConfirmation.classList.remove('cacher');
+    formPaiement.reset();
+  };
+</script>
+</body>
+</html>

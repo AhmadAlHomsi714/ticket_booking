@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Administration - Gestion des matchs et utilisateurs</title>
+<style>
+  :root {
+    --couleur-primaire: #004e92;
+    --couleur-secondaire: #000428;
+    --accent: #f64f59;
+    --background-gradient: linear-gradient(135deg, var(--couleur-primaire), var(--couleur-secondaire));
+    --police: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  body {
+    margin: 0;
+    background: var(--background-gradient);
+    font-family: var(--police);
+    color: white;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .conteneur {
+    background: rgba(0,0,0,0.75);
+    border-radius: 12px;
+    max-width: 800px;
+    width: 100%;
+    padding: 30px 40px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+  }
+  h1, h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+  label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  input, select, button {
+    width: 100%;
+    border-radius: 6px;
+    border: none;
+    padding: 10px 14px;
+    font-size: 1rem;
+    outline: none;
+    box-sizing: border-box;
+    font-family: var(--police);
+    transition: box-shadow 0.3s ease;
+    color: black;
+  }
+  input:focus, select:focus {
+    box-shadow: 0 0 8px var(--accent);
+  }
+  button {
+    margin-top: 15px;
+    background: var(--accent);
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    border: none;
+  }
+  button:hover:not(:disabled) {
+    background: #d9393f;
+  }
+  button:disabled {
+    background: grey;
+    cursor: not-allowed;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  thead {
+    background-color: var(--couleur-primaire);
+  }
+  th, td {
+    border: 1px solid #555;
+    padding: 10px;
+    text-align: left;
+    vertical-align: middle;
+  }
+  th {
+    font-weight: 700;
+  }
+  input.event-input {
+    width: 100%;
+  }
+  .delete-btn {
+    background-color: #f64f59;
+    color: white;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 6px 12px;
+  }
+</style>
+</head>
+<body>
+  <div class="conteneur">
+    <h1>Gestion des matchs et utilisateurs</h1>
+
+    <section>
+      <h2>Ajouter ou modifier un match</h2>
+      <form id="form-match">
+        <input type="hidden" id="index-match" value="-1">
+        <label for="nom-en">Nom du match (Anglais)</label>
+        <input type="text" id="nom-en" required placeholder="Exemple: Hockey Match">
+        <label for="nom-fr">Nom du match (Français)</label>
+        <input type="text" id="nom-fr" required placeholder="Exemple: Match de Hockey">
+        <label for="date-match">Date du match</label>
+        <input type="date" id="date-match" required>
+        <label for="prix-match">Prix du billet (CAD)</label>
+        <input type="number" id="prix-match" min="0" step="0.01" required>
+        <label for="lieu-en">Lieu (Anglais)</label>
+        <input type="text" id="lieu-en" required placeholder="Exemple: Montreal Studio">
+        <label for="lieu-fr">Lieu (Français)</label>
+        <input type="text" id="lieu-fr" required placeholder="Exemple: Studio de Montréal">
+        <button type="submit" id="btn-enregistrer">Enregistrer le match</button>
+        <button type="button" id="btn-annuler" style="display:none; background:#666; margin-top:10px;">Annuler la modification</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Liste des matchs</h2>
+      <table aria-label="Liste des matchs">
+        <thead>
+          <tr>
+            <th>Nom (Anglais)</th>
+            <th>Nom (Français)</th>
+            <th>Date</th>
+            <th>Prix (CAD)</th>
+            <th>Lieu (Anglais)</th>
+            <th>Lieu (Français)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-matchs"></tbody>
+      </table>
+    </section>
+
+    <section style="margin-top:40px;">
+      <h2>Utilisateurs inscrits et réservations</h2>
+      <table aria-label="Liste des utilisateurs">
+        <thead>
+          <tr>
+            <th>Nom d'utilisateur</th>
+            <th>Email</th>
+            <th>Date de naissance</th>
+            <th>Réservations</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-utilisateurs"></tbody>
+      </table>
+    </section>
+  </div>
+
+<script>
+  // Récupération d'éléments
+  const formMatch = document.getElementById('form-match');
+  const tbodyMatchs = document.getElementById('tbody-matchs');
+  const tbodyUtilisateurs = document.getElementById('tbody-utilisateurs');
+  const btnAnnuler = document.getElementById('btn-annuler');
+  const indexMatchInput = document.getElementById('index-match');
+
+  // Fonction pour récupérer les matchs du localStorage
+  function getMatchs() {
+    let m = localStorage.getItem('matchs');
+    return m ? JSON.parse(m) : [];
+  }
+
+  // Fonction pour sauvegarder les matchs dans localStorage
+  function saveMatchs(matchs) {
+    localStorage.setItem('matchs', JSON.stringify(matchs));
+  }
+
+  // Fonction pour récupérer les utilisateurs
+  function getUtilisateurs() {
+    let u = localStorage.getItem('utilisateurs');
+    return u ? JSON.parse(u) : [];
+  }
+
+  // Afficher la liste des matchs
+  function afficherMatchs() {
+    const matchs = getMatchs();
+    tbodyMatchs.innerHTML = '';
+    matchs.forEach((m, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" class="event-input" data-index="${i}" data-field="name_en" value="${m.name_en}"></td>
+        <td><input type="text" class="event-input" data-index="${i}" data-field="name_fr" value="${m.name_fr}"></td>
+        <td><input type="date" class="event-input" data-index="${i}" data-field="date" value="${m.date}"></td>
+        <td><input type="number" min="0" step="0.01" class="event-input" data-index="${i}" data-field="price" value="${m.price}"></td>
+        <td><input type="text" class="event-input" data-index="${i}" data-field="location_en" value="${m.location_en}"></td>
+        <td><input type="text" class="event-input" data-index="${i}" data-field="location_fr" value="${m.location_fr}"></td>
+        <td>
+          <button class="btn-modifier" data-index="${i}">Modifier</button>
+          <button class="btn-supprimer" data-index="${i}">Supprimer</button>
+        </td>
+      `;
+      tbodyMatchs.appendChild(tr);
+    });
+  }
+
+  // Afficher la liste des utilisateurs avec réservations
+  function afficherUtilisateurs() {
+    const utilisateurs = getUtilisateurs();
+    const matchs = getMatchs();
+    tbodyUtilisateurs.innerHTML = '';
+    utilisateurs.forEach(u => {
+      const tr = document.createElement('tr');
+      let resas = 'Aucune réservation';
+      if(u.reservation && typeof u.reservation.eventIndex === 'number'){
+        const m = matchs[u.reservation.eventIndex];
+        if(m){
+          resas = `Match: ${m.name_fr} (${m.date}), billets: ${u.reservation.quantity}`;
+        }
+      }
+      tr.innerHTML = `
+        <td>${u.pseudo}</td>
+        <td>${u.email}</td>
+        <td>${u.dob}</td>
+        <td>${resas}</td>
+      `;
+      tbodyUtilisateurs.appendChild(tr);
+    });
+  }
+
+  // Initialiser affichage
+  afficherMatchs();
+  afficherUtilisateurs();
+
+  // Gestion modification formulaire via boutons dans tableau
+  tbodyMatchs.addEventListener('click', e => {
+    if(e.target.classList.contains('btn-modifier')){
+      const idx = parseInt(e.target.dataset.index);
+      if(isNaN(idx)) return;
+      const matchs = getMatchs();
+      const m = matchs[idx];
+      if(!m) return;
+      indexMatchInput.value = idx;
+      document.getElementById('nom-en').value = m.name_en;
+      document.getElementById('nom-fr').value = m.name_fr;
+      document.getElementById('date-match').value = m.date;
+      document.getElementById('prix-match').value = m.price;
+      document.getElementById('lieu-en').value = m.location_en;
+      document.getElementById('lieu-fr').value = m.location_fr;
+      btnAnnuler.style.display = 'inline-block';
+      btnEnregistrer.textContent = 'Modifier le match';
+      window.scrollTo(0,0);
+    }
+    if(e.target.classList.contains('btn-supprimer')){
+      const idx = parseInt(e.target.dataset.index);
+      if(isNaN(idx)) return;
+      if(confirm('Êtes-vous sûr de vouloir supprimer ce match ?')){
+        const matchs = getMatchs();
+        matchs.splice(idx,1);
+        saveMatchs(matchs);
+        afficherMatchs();
+        afficherUtilisateurs();
+      }
+    }
+  });
+
+  // Gestion modification directe dans inputs tableaux (sauvegarde à chaque changement)
+  tbodyMatchs.addEventListener('input', e => {
+    const el = e.target;
+    if(el.classList.contains('event-input')){
+      const idx = parseInt(el.dataset.index);
+      const field = el.dataset.field;
+      if(isNaN(idx) || !field) return;
+      const matchs = getMatchs();
+      if(field === 'price'){
+        const val = parseFloat(el.value);
+        if(isNaN(val) || val < 0) return;
+        matchs[idx][field] = val;
+      } else {
+        matchs[idx][field] = el.value;
+      }
+      saveMatchs(matchs);
+      afficherUtilisateurs();
+    }
+  });
+
+  // Gestion formulaire ajout/modification match
+  const btnEnregistrer = document.getElementById('btn-enregistrer');
+
+  formMatch.addEventListener('submit', e => {
+    e.preventDefault();
+    const idx = parseInt(indexMatchInput.value);
+    const name_en = document.getElementById('nom-en').value.trim();
+    const name_fr = document.getElementById('nom-fr').value.trim();
+    const date = document.getElementById('date-match').value;
+    const price = parseFloat(document.getElementById('prix-match').value);
+    const location_en = document.getElementById('lieu-en').value.trim();
+    const location_fr = document.getElementById('lieu-fr').value.trim();
+
+    if(!name_en || !name_fr || !date || isNaN(price) || price < 0 || !location_en || !location_fr){
+      alert('Veuillez remplir correctement tous les champs.');
+      return;
+    }
+
+    const matchs = getMatchs();
+
+    if(idx >= 0){
+      matchs[idx] = {name_en, name_fr, date, price, location_en, location_fr};
+    } else {
+      matchs.push({name_en, name_fr, date, price, location_en, location_fr});
+    }
+    saveMatchs(matchs);
+    afficherMatchs();
+    afficherUtilisateurs();
+    formMatch.reset();
+    indexMatchInput.value = -1;
+    btnEnregistrer.textContent = 'Enregistrer le match';
+    btnAnnuler.style.display = 'none';
+  });
+
+  // Gestion bouton annuler modification
+  btnAnnuler.addEventListener('click', e => {
+    e.preventDefault();
+    formMatch.reset();
+    indexMatchInput.value = -1;
+    btnEnregistrer.textContent = 'Enregistrer le match';
+    btnAnnuler.style.display = 'none';
+  });
+</script>
+</body>
+</html>

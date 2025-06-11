@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Événements à venir - Hockey & Boxe</title>
+<style>
+  :root {
+    --couleur-primaire: #004e92;
+    --couleur-secondaire: #000428;
+    --accent: #f64f59;
+    --background-gradient: linear-gradient(135deg, var(--couleur-primaire), var(--couleur-secondaire));
+    --police: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --card-bg: rgba(255, 255, 255, 0.1);
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: var(--police);
+    background: var(--background-gradient);
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  .conteneur {
+    max-width: 600px;
+    width: 100%;
+    background: rgba(0,0,0,0.75);
+    border-radius: 15px;
+    padding: 30px 40px 40px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-grow: 1;
+    text-align: center;
+  }
+  h1 {
+    margin-bottom: 30px;
+    font-weight: 700;
+  }
+  .carte-evenement {
+    background: var(--card-bg);
+    padding: 20px 25px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.4);
+  }
+  .nom-evenement {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .detail-evenement {
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+    color: #ddd;
+  }
+  #btn-reserver {
+    margin-top: 20px;
+    background: var(--accent);
+    border: none;
+    padding: 15px 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: white;
+    width: 100%;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    user-select: none;
+  }
+  #btn-reserver:hover {
+    background: #d9393f;
+  }
+</style>
+</head>
+<body>
+  <div class="conteneur">
+    <h1>Événements à venir</h1>
+    <div id="liste-evenements">
+      <!-- Les cartes d'événements seront générées ici -->
+    </div>
+    <button id="btn-reserver">Réserver maintenant</button>
+  </div>
+
+<script>
+  // Récupérer les matchs depuis le localStorage ou valeur par défaut
+  function getMatchs(){
+    const data = localStorage.getItem('matchs');
+    if(data) {
+      try {
+        return JSON.parse(data);
+      } catch(e) {
+        console.error('Erreur parsing des matchs:', e);
+        return [];
+      }
+    }
+    // Valeurs par défaut si aucune donnée en localStorage
+    return [
+      {
+        name_fr: 'Match de Hockey',
+        date: '2024-08-15',
+        price: 50,
+        location_fr: 'Studio de MTL'
+      },
+      {
+        name_fr: 'Match de Boxe',
+        date: '2024-08-25',
+        price: 70,
+        location_fr: 'Studio de MTL'
+      }
+    ];
+  }
+
+  // Fonction de format de date en JJ-MM-AAAA
+  function formaterDate(dateStr){
+    const d = new Date(dateStr);
+    if(isNaN(d)) return dateStr;
+    const jour = String(d.getDate()).padStart(2, '0');
+    const mois = String(d.getMonth() + 1).padStart(2, '0');
+    const annee = d.getFullYear();
+    return `${jour}-${mois}-${annee}`;
+  }
+
+  // Afficher la liste des événements dans la div dédiée
+  function afficherEvenements(){
+    const liste = document.getElementById('liste-evenements');
+    const matchs = getMatchs();
+    liste.innerHTML = '';
+    matchs.forEach(m => {
+      const carte = document.createElement('div');
+      carte.className = 'carte-evenement';
+      carte.innerHTML = `
+        <div class="nom-evenement">${m.name_fr || 'Match'}</div>
+        <div class="detail-evenement">Date : ${formaterDate(m.date)}</div>
+        <div class="detail-evenement">Prix : ${m.price ?? '?'} $ CA</div>
+        <div class="detail-evenement">Lieu : ${m.location_fr || 'Studio de MTL'}</div>
+      `;
+      liste.appendChild(carte);
+    });
+  }
+
+  // Redirection du bouton vers la page de réservation
+  document.getElementById('btn-reserver').addEventListener('click', () => {
+    window.location.href = 'user.html?show=inscription';
+  });
+
+  // Initialisation de l'affichage
+  afficherEvenements();
+</script>
+</body>
+</html>
